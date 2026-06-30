@@ -1,92 +1,74 @@
 # ファイル作成時のテンプレート
 
-## 新規 entity
+## 新規 service
 
 ```go
-package entity
+package service
 
-import "errors"
-
-// UserID はユーザーの識別子。
-type UserID string
-
-// User はユーザーエンティティ。
-type User struct {
-	ID   UserID
-	Name string
+type XxxService struct {
+	repo XxxRepository
 }
 
-// NewUser は不変条件を検証して User を生成する。
-func NewUser(id UserID, name string) (*User, error) {
-	if name == "" {
-		return nil, errors.New("name must not be empty")
+func NewXxxService(repo XxxRepository) *XxxService {
+	return &XxxService{repo: repo}
+}
+
+func (s *XxxService) Run(input XxxInput) (XxxOutput, error) {
+	return XxxOutput{}, nil
+}
+```
+
+## 新規 handler
+
+```go
+package handler
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+type XxxService interface {
+	Run(input XxxInput) (XxxOutput, error)
+}
+
+type XxxHandler struct {
+	service XxxService
+}
+
+func NewXxxHandler(service XxxService) *XxxHandler {
+	return &XxxHandler{service: service}
+}
+
+func (h *XxxHandler) Get(c echo.Context) error {
+	output, err := h.service.Run(XxxInput{})
+	if err != nil {
+		return err
 	}
-	return &User{ID: id, Name: name}, nil
+	return c.JSON(http.StatusOK, output)
 }
 ```
 
-## 新規 usecase
-
-```go
-package usecase
-
-import "context"
-
-// XxxUseCase は Xxx のユースケース。
-type XxxUseCase struct {
-	xxxRepo repository.XxxRepository
-}
-
-// NewXxxUseCase は XxxUseCase を生成する。
-func NewXxxUseCase(xxxRepo repository.XxxRepository) *XxxUseCase {
-	return &XxxUseCase{xxxRepo: xxxRepo}
-}
-
-// Execute はユースケースを実行する。
-func (u *XxxUseCase) Execute(ctx context.Context, in XxxInput) (XxxOutput, error) {
-	// ...
-}
-```
-
-## 新規 repository インターフェース
+## 新規 repository
 
 ```go
 package repository
 
-import "context"
-
-// XxxRepository は Xxx の永続化インターフェース。
-type XxxRepository interface {
-	FindByID(ctx context.Context, id entity.XxxID) (*entity.Xxx, error)
-	Save(ctx context.Context, x *entity.Xxx) error
-}
-```
-
-## 新規 router / handler（Echo）
-
-```go
-package web
-
 import (
-	"github.com/labstack/echo/v4"
+	"context"
+	"database/sql"
 )
 
-// RegisterXxxRoutes は Xxx 関連のルートを登録する。
-func RegisterXxxRoutes(e *echo.Echo, c *controller.XxxController) {
-	g := e.Group("/xxx")
-	g.GET("", c.List)
+type XxxRepository struct {
+	db *sql.DB
 }
-```
 
-## 新規 port インターフェース
+func NewXxxRepository(db *sql.DB) *XxxRepository {
+	return &XxxRepository{db: db}
+}
 
-```go
-package port
-
-import "context"
-
-// XxxPort は外部サービス Xxx のインターフェース。
-type XxxPort interface {
-	Send(ctx context.Context, msg XxxMessage) error
+func (r *XxxRepository) Find(ctx context.Context, id string) (XxxRecord, error) {
+	return XxxRecord{}, nil
 }
 ```

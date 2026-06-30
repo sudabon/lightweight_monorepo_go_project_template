@@ -24,6 +24,7 @@ globs: ["backend/**"]
 - 業務判断とユースケースの流れを置く。
 - 永続化が必要な場合は repository を呼ぶ。
 - HTTP 固有型に依存しない。
+- 小規模なレスポンス型は `service` に置いてよい。ただし、HTTP専用の表現や画面都合の型が増えた場合は `handler` 側または `dto` に分離する。
 - table-driven test を優先して追加する。
 
 ## repository
@@ -36,4 +37,5 @@ globs: ["backend/**"]
 
 - 環境変数は `config` に集約する。
 - DB接続生成は `db` に置く。
+- `db.OpenPostgres` は接続プールを初期化するだけで、接続確認は行わない。起動時にDB必須とする場合は、呼び出し側で `PingContext` を実行する。
 - Echo のルート登録と依存配線は `router` に置く。

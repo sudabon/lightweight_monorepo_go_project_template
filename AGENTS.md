@@ -34,6 +34,8 @@ frontend/
 - SQL を `handler` に書かない。
 - 環境変数アクセスは `backend/internal/config` に集約し、各所で `os.Getenv` を呼ばない。
 - DB 接続初期化は `backend/internal/db` に置く。起動時に DB を必須にしない。
+- 小規模なレスポンス型は `service` に置いてよい。ただし、HTTP専用の表現や画面都合の型が増えた場合は `handler` 側または `dto` に分離する。
+- `db.OpenPostgres` は接続プールを初期化するだけで、接続確認は行わない。起動時にDB必須とする場合は、呼び出し側で `PingContext` を実行する。
 
 ## frontend ルール
 
@@ -59,6 +61,13 @@ pnpm install
 pnpm dev
 pnpm build
 ```
+
+## テスト方針
+
+- service の業務判断は unit test を書く。
+- handler は主要なHTTPステータスとレスポンスJSONをテストする。
+- repository は実DBが必要な場合のみ integration test として追加する。
+- `/health` はDB非依存を維持する。
 
 ## 変更方針
 

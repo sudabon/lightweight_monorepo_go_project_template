@@ -77,6 +77,13 @@ cd frontend
 pnpm build
 ```
 
+## テスト方針
+
+- service の業務判断は unit test を書きます。
+- handler は主要な HTTP ステータスとレスポンス JSON をテストします。
+- repository は実DBが必要な場合のみ integration test として追加します。
+- `/health` はDB非依存を維持します。
+
 ## 開発ルール
 
 - `handler` は HTTP 入出力だけを扱い、`service` を呼びます。
@@ -84,7 +91,12 @@ pnpm build
 - `repository` は DB・SQL・ドライバ固有処理を扱います。
 - `handler` から DB を直接触らないでください。
 - `os.Getenv` は `backend/internal/config` 以外で使わないでください。
+- 小規模なレスポンス型は `service` に置いてよいです。ただし、HTTP専用の表現や画面都合の型が増えた場合は `handler` 側または `dto` に分離してください。
 - frontend コンポーネントから直接 `fetch` を増やさず、`src/lib` の API クライアントに集約してください。
+
+## DB接続
+
+`db.OpenPostgres` は接続プールを初期化するだけで、接続確認は行いません。起動時にDB必須とする場合は、呼び出し側で `PingContext` を実行してください。ただし、初期テンプレートでは `/health` をDB非依存にするため、起動時DB接続確認は行いません。
 
 ## 環境変数
 

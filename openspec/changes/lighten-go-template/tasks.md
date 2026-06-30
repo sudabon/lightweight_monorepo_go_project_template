@@ -48,6 +48,6 @@
 ## 7. コミット・PR・Template 化
 
 - [x] 7.1 関心事ごとに日本語コミットメッセージで分割コミットする（プレフィックス: feat/refactor/docs/chore）
-- [ ] 7.2 push して PR を作成する
+- [x] 7.2 push して PR を作成する
 - [ ] 7.3 マージ後、`gh api --method PATCH repos/sudabon/lightweight_monorepo_go_project_template -F is_template=true` で Template 化する
 - [ ] 7.4 `gh repo view --json isTemplate` で `isTemplate=true` を確認する

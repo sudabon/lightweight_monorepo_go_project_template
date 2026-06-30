@@ -1,45 +1,100 @@
-# monorepo_go_project_template
+# lightweight_monorepo_go_project_template
 
-クリーンアーキテクチャに沿ったモノレポ Web アプリ（Go バックエンド）を実装するための**ベース／テンプレート**用リポジトリです。依存の向きとソース配置をテストで固定し、エージェント向けの規約をリポジトリ内にまとめています。
+Go + React の軽量モノレポテンプレートです。backend は Echo v4 を使い、`handler / service / repository` の3責務に絞っています。frontend は React + TypeScript + Vite の最小構成です。
 
-## 現状のリポジトリに含まれるもの
+## 概要
 
-| 内容 | 説明 |
-|------|------|
-| **アーキテクチャテスト** | `backend/tests/arch/` に `go test` ベースの検証があります。Go のソースルートは **`backend/internal/todo_app`**、モジュールパスは **`github.com/sudabon/todo_app`** を想定しています（フォーク時にリネームしてください）。 |
-| **依存ルール** | `dependency_rule_test.go` … `domain` 層が `app` / `interfaces` / `infra` へ内向き import しないことを `go/parser` で検査します。 |
-| **ディレクトリ構造** | `structure_test.go` … ソースルート直下に **`domain` → `app` → `interfaces` → `infra`** の4層フォルダのみがあることを検証します（内側から外側の順）。 |
-| **エージェント規約** | `.cursor/rules/`、`.claude/rules/`、`.codex/rules/` にアーキテクチャ・バックエンド／フロント規約・テスト・Git などを配置しています。 |
+- `GET /health` は DB 非依存で `{"status":"ok"}` を返します。
+- 環境変数の読み込みは `backend/internal/config` に集約します。
+- DB接続初期化は `backend/internal/db` に置きますが、初期状態の起動には必須ではありません。
+- frontend の API 呼び出しは `frontend/src/lib/api.ts` に集約し、レスポンス型は `frontend/src/types/` に置きます。
 
-依存の方向の原則（`.claude/rules/architecture.md` と同趣旨）は次のとおりです。
+## ディレクトリ構成
 
+```text
+.
+├── backend/
+│   ├── cmd/server/main.go
+│   ├── internal/
+│   │   ├── config/
+│   │   ├── db/
+│   │   ├── handler/
+│   │   ├── repository/
+│   │   ├── router/
+│   │   └── service/
+│   └── migrations/
+├── frontend/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── src/
+│       ├── App.tsx
+│       ├── components/
+│       ├── hooks/
+│       ├── lib/
+│       ├── pages/
+│       └── types/
+├── docker-compose.yml
+├── .env.example
+└── go.mod
 ```
-interfaces → app → domain
-infra      → app → domain
-```
 
-- **domain** は他レイヤーに依存しない（Go標準ライブラリ中心）。
-- **app** は **domain** のみ参照する。
-- **infra** は **app** の抽象（リポジトリ/port等）を実装する。
-- **interfaces** は **app** のユースケースを呼び出す。
-
-> Goでは `interface` が予約語のため、Interface層のフォルダ／パッケージ名は **`interfaces`**（複数形）としています。
-
-## まだ含まれていないもの（目標構成）
-
-アプリケーション本体（Echo の `backend/cmd/`・`backend/internal/`、フロントエンド、`package.json` など）は**未配置**です。導入後に目指すスタック・ディレクトリ・コマンドの全体像は **`AGENTS.md`** に記載しています（Go 1.23 / Echo / GORM v2、React / Vite / pnpm など）。
-
-アーキテクチャテストは、対象パッケージ（`backend/internal/todo_app`）が未配置のあいだは `t.Skip()` でスキップされます。`AGENTS.md` の構成に合わせて4層フォルダと実装を追加すると、依存ルール・構造の検査が有効になります。
+## 起動方法
 
 ```bash
-go test ./...          # 素の状態では arch テストはスキップ（緑）
+cp .env.example .env
+docker compose up -d db
+
+cd backend
+go run ./cmd/server
 ```
 
-## ドキュメントの読み方
+別ターミナルで確認します。
 
-- **人間・ツール共通のプロジェクト概要・コマンド例** → [`AGENTS.md`](./AGENTS.md)
-- **依存方向・禁止事項の短い要約** → [`.claude/rules/architecture.md`](./.claude/rules/architecture.md)
+```bash
+curl http://localhost:8080/health
+```
 
----
+frontend は必要に応じて API の向き先を指定します。
 
-この README はリポジトリの実ファイル構成に基づいています。ソースやモジュール名を追加したら、`todo_app` 参照（ソースルート名・モジュールパス）とテストの期待値を自分のプロジェクト名に合わせて更新してください。
+```bash
+cd frontend
+pnpm install
+VITE_API_BASE_URL=http://localhost:8080 pnpm dev
+```
+
+## テスト
+
+```bash
+cd backend
+go test ./...
+go vet ./...
+gofmt -l .
+```
+
+```bash
+cd frontend
+pnpm build
+```
+
+## 開発ルール
+
+- `handler` は HTTP 入出力だけを扱い、`service` を呼びます。
+- `service` は業務判断を扱い、永続化が必要な場合だけ `repository` を呼びます。
+- `repository` は DB・SQL・ドライバ固有処理を扱います。
+- `handler` から DB を直接触らないでください。
+- `os.Getenv` は `backend/internal/config` 以外で使わないでください。
+- frontend コンポーネントから直接 `fetch` を増やさず、`src/lib` の API クライアントに集約してください。
+
+## 環境変数
+
+| 変数 | デフォルト | 用途 |
+|------|------------|------|
+| `APP_ENV` | `local` | backend の実行環境名 |
+| `APP_PORT` | `8080` | backend の待受ポート |
+| `DATABASE_URL` | 空 | PostgreSQL 接続URL。初期 `/health` では未使用 |
+| `VITE_API_BASE_URL` | `http://localhost:8080` | frontend から backend を呼ぶURL |
+
+## テンプレート利用時
+
+このリポジトリから新規プロジェクトを作る場合は、`go.mod` の module path、README、package 名を自分のリポジトリ名に合わせて変更してください。

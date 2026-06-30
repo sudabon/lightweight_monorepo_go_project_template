@@ -1,21 +1,20 @@
 # アーキテクチャ原則
 
-## 依存の方向（厳守）
+backend は `handler / service / repository` の3責務を基本にする。
 
-```
-interfaces → app → domain
-infra      → app → domain
-```
+## 責務
 
-- **domain** は他のどの層にも依存しない。Go標準ライブラリのみ使用可。
-- **app** は domain のみに依存する。infra や interfaces を import しない。
-- **infra** は app のリポジトリ/port インターフェースを実装する。
-- **interfaces** は app の usecase を呼び出す。domain を直接操作しない。
+- `handler`: Echo の HTTP 入出力、リクエストの取り出し、レスポンス整形。
+- `service`: 業務判断、ユースケースの流れ、必要な repository 呼び出し。
+- `repository`: DB・SQL・ドライバ固有処理。
+- `config`: 環境変数読み込み。
+- `db`: DB接続初期化。
+- `router`: Echo ルート登録と依存の配線。
 
 ## 禁止事項
 
-- domain 層で GORM・Echo・その他外部ライブラリを import しない
-- usecase 内で具象リポジトリや具象port を直接生成しない（コンストラクタでDIする）
-- controller から entity を直接返さない（必ず viewmodel に変換する）
-- infra の具象型を interfaces から直接 import しない
-- app 層の port インターフェースに infra の実装詳細を漏らさない
+- `handler` に SQL や DB ドライバ呼び出しを書かない。
+- `handler` から `repository` や `db` を直接呼ばない。
+- `service` に HTTP 固有の `echo.Context` を渡さない。
+- `repository` から HTTP レスポンスを組み立てない。
+- `os.Getenv` は `backend/internal/config` 以外で呼ばない。

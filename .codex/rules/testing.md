@@ -2,10 +2,10 @@
 
 ## バックエンド
 
-- ユニットテスト: domain, app 層を中心にテストする。リポジトリ/port は interface のモック実装で差し替える。
+- `service` のユニットテストを優先する。
 - table-driven テストを基本とする。
-- 統合テスト: infra 層のDB操作等を、テスト用DB（testcontainers 等）または build tag で分離して検証する。
-- テストファイルは対象と同階層に `xxx_test.go` として配置する。アーキテクチャテストは `backend/tests/arch/` に置く。
+- repository の統合テストは、テスト用DB（testcontainers 等）または build tag で分離して検証する。
+- テストファイルは対象と同階層に `xxx_test.go` として配置する。
 - テスト関数名は `TestXxx_条件_期待結果` の形式にする。
 - 共通のセットアップは `TestMain` やヘルパー関数（`t.Helper()`）に集約する。
 

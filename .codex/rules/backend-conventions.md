@@ -13,31 +13,27 @@ globs: ["backend/**"]
 - マジックナンバー・文字列は定数（`const`）として定義する。
 - `gofmt` で整形し、`go vet` を通す。
 
-## Domain層
+## handler
 
-- entity は struct で定義し、不変条件はコンストラクタ関数（`NewXxx`）で検証する。
-- ドメインサービスはステートレスにする。
-- 外部ライブラリに依存しない（標準ライブラリ中心）。
+- Echo の `Context` は handler 内に閉じ込める。
+- service を呼び、HTTP ステータスと JSON レスポンスを返す。
+- SQL、DBドライバ、環境変数アクセスを書かない。
 
-## Application層
+## service
 
-- usecase は struct とし、単一のパブリックメソッド（`Execute` 等）を持つ。
-- リポジトリは Go の interface として `app/repository/` で定義する。
-- 外部サービスの機能インターフェースは `app/port/` で定義する（通知・外部API等）。
-- DTO は struct で定義し、入出力を明確にする。
-- 共通の結果型やエラー型は `app/common/` に配置する。
+- 業務判断とユースケースの流れを置く。
+- 永続化が必要な場合は repository を呼ぶ。
+- HTTP 固有型に依存しない。
+- table-driven test を優先して追加する。
 
-## Infrastructure層
+## repository
 
-- GORM モデルは `infra/persistence/` に配置し、domain の entity とは分離する。
-- infra モデル → domain entity の変換関数を用意する。
-- app の repository/port インターフェースの具象実装をこの層に配置する。
-- 設定値は `infra/config/` に集約し、環境変数から取得する。
-- ロギングは `infra/logging/` に集約し、`log/slog` を使用する。
+- DB・SQL・ドライバ固有処理を置く。
+- `database/sql` の `*sql.DB` はコンストラクタで受け取る。
+- handler から直接呼ばせない。
 
-## Interface層（interfaces）
+## config / db / router
 
-- Echo のハンドラ（router）は薄く保ち、ロジックは controller に委譲する。
-- controller は usecase を呼び出し、結果を viewmodel に変換して返す。
-- 依存（usecase・リポジトリ等）はコンストラクタ注入で渡す。
-- リクエストのバインド／バリデーションは interfaces 層で行う。
+- 環境変数は `config` に集約する。
+- DB接続生成は `db` に置く。
+- Echo のルート登録と依存配線は `router` に置く。

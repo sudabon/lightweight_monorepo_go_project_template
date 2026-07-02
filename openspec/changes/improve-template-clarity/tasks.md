@@ -57,6 +57,6 @@
 ## 8. 仕上げ
 
 - [x] 8.1 全体の完了条件を確認する: `cd backend && go test ./... && go vet ./... && gofmt -l .`（出力なし）、`cd frontend && pnpm test && pnpm build`
-- [ ] 8.2 新規クローンから README 手順をなぞり、ブラウザ「ok」表示と `/health/db` の 200/503 切り替えを確認する
-- [ ] 8.3 関心事ごとに日本語コミットメッセージで分割コミットする（プレフィックス: feat/fix/refactor/test/docs）
+- [x] 8.2 新規クローンから README 手順をなぞり、ブラウザ「ok」表示と `/health/db` の 200/503 切り替えを確認する
+- [x] 8.3 関心事ごとに日本語コミットメッセージで分割コミットする（プレフィックス: feat/fix/refactor/test/docs）
 - [ ] 8.4 push して PR を作成する（PR 本文に本 change `improve-template-clarity` と `docs/refactoring-instructions.md` へのリンクを含める）

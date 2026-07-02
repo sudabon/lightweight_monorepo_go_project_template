@@ -10,6 +10,8 @@
 ```text
 backend/
   cmd/server/main.go
+  go.mod
+  go.sum
   internal/config/
   internal/db/
   internal/handler/
@@ -34,8 +36,12 @@ frontend/
 - SQL を `handler` に書かない。
 - 環境変数アクセスは `backend/internal/config` に集約し、各所で `os.Getenv` を呼ばない。
 - DB 接続初期化は `backend/internal/db` に置く。起動時に DB を必須にしない。
+- Echo の構成とルート登録は `backend/internal/router` に置く。
+- 依存の配線（composition root）は `backend/cmd/server/main.go` に置く。
 - 小規模なレスポンス型は `service` に置いてよい。ただし、HTTP専用の表現や画面都合の型が増えた場合は `handler` 側または `dto` に分離する。
 - `db.OpenPostgres` は接続プールを初期化するだけで、接続確認は行わない。起動時にDB必須とする場合は、呼び出し側で `PingContext` を実行する。
+- `/health` は DB 非依存で 200 を返す。
+- `/health/db` は DB 疎通可能なら 200、疎通不可なら 503 を返す。DB 未起動でもサーバー起動は維持する。
 
 ## frontend ルール
 
@@ -68,6 +74,7 @@ pnpm build
 - handler は主要なHTTPステータスとレスポンスJSONをテストする。
 - repository は実DBが必要な場合のみ integration test として追加する。
 - `/health` はDB非依存を維持する。
+- `/health/db` は実DBなしのテストでは fake / mock で検証する。
 
 ## 変更方針
 

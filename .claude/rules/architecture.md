@@ -9,7 +9,8 @@ backend は `handler / service / repository` の3責務を基本にする。
 - `repository`: DB・SQL・ドライバ固有処理。
 - `config`: 環境変数読み込み。
 - `db`: DB接続初期化。
-- `router`: Echo ルート登録と依存の配線。
+- `router`: Echo の構成とルート登録。
+- `main`: 依存の配線（composition root）。
 
 ## 禁止事項
 

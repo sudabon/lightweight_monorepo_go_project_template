@@ -38,4 +38,5 @@ globs: ["backend/**"]
 - 環境変数は `config` に集約する。
 - DB接続生成は `db` に置く。
 - `db.OpenPostgres` は接続プールを初期化するだけで、接続確認は行わない。起動時にDB必須とする場合は、呼び出し側で `PingContext` を実行する。
-- Echo のルート登録と依存配線は `router` に置く。
+- Echo の構成とルート登録は `router` に置く。
+- 依存の配線（composition root）は `cmd/server/main.go` に置く。
